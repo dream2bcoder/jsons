@@ -1,0 +1,133 @@
+@charset "utf-8";
+
+* {
+    outline: none;
+}
+
+html, body {
+    min-width: 100%;
+    height: 95vh;
+    margin: 0;
+    padding: 0;;
+}
+
+.sidebar {
+    right: 0;
+    top: 0;
+    width: 360px;
+    height: 724px;
+    position: fixed;
+    overflow-x: hidden;
+    overflow-y: auto;
+    padding-right: 10px;
+    background-color: #0055ff;
+}
+
+.ticketBox {
+    width: 325px;
+    max-height: 40px;
+    margin: 10px 10px 0 10px;
+    background-color: #262626;
+    color: #ff8800;
+    font-size: 22px;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 12px 6px;
+    border-top-left-radius: 10px;
+    border-bottom-left-radius: 10px;
+}
+
+.ticketBox:hover {
+    text-decoration: underline;
+}
+
+.textBox-textContent {
+    margin-right: 0;
+    width: 280px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.editorContainer {
+    position: relative;
+    margin: 30px 10px 0 10px;
+    width: calc(100% - 360px);
+}
+
+.noselect {
+    -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+    -khtml-user-select: none; /* Konqueror HTML */
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* Internet Explorer/Edge */
+    user-select: none; /* Non-prefixed version, currently
+                          supported by Chrome and Opera */
+}
+
+.editablearea {
+    border: 2px inset #AAAAAA;
+    padding: 8px;
+    margin: 8px 10px 0 10px;
+    width: 94%;
+    overflow: auto;
+}
+
+
+
+.button {
+    min-height: 40px;
+    border: 1.2px solid white;
+    background-color: #0657f9;
+    color: #dfdfdf;
+    font-size: 24px;
+    font-weight: lighter;
+    max-width: 150px;
+    min-width: 100px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 5px;
+    cursor: pointer;
+    margin: 5px;
+}
+
+.button:hover {
+    background-color: #2060df;
+}
+
+.button:active {
+    background-color: #0055ff;
+}
+
+.button.loading {
+    pointer-events: none;
+    opacity: 0.8;
+    cursor: progress;
+}
+
+.closeButton {
+    float: right;
+    background-image: url('./remove.png');
+    background-position: center center;
+    background-repeat: no-repeat;
+    width: 32px;
+    height: 32px;
+    margin-top: -30px;
+}
+
+/* enable placeholder in div or paragraph */
+[contentEditable=true]:empty:not(:focus):before{
+    content:attr(data-text);
+    color: #ccc;
+    font-size: 20px;
+    font-weight: lighter;
+}
+
+[contentEditable=false] {
+    content:'';
+    background-color: #efefef;
+    color: #222222;
+    font-size: 20px;
+    font-weight: lighter;
+}

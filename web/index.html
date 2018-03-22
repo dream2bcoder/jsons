@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>CODE-E</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="css/style.css" >
+    </head>
+    <body>
+        <div class="editorContainer">
+            <input type="hidden" id="ticket_id" style="display: none">
+            <p class="editablearea" id="title" contenteditable="true" data-text='Please enter code title' style="height: 25px;font-weight: bold"></p>
+            <div class="editablearea" id="desc" contenteditable="true" data-text='Please enter code description' style="height: 50px"></div>
+            <div class="editablearea" id="code" contenteditable="true" data-text='// Please write your code here' style="height: 63vh"></div>
+            <div class="button noselect" id="save" onclick="processTicket(event, 'generateTicket')" style="float: right; margin-right: 30px"><span>Save</span></div>
+            <div class="button noselect" id="new" onclick="resetAll(event)" style="float: right; margin-right: 0; width: 120px"><span>New/Reset</span></div>
+            <div class="button noselect" id="copy" onclick="copyCode(event)" style="float: right; margin-right: 0; width: 120px"><span>Copy</span></div>
+        </div>
+        <div class="sidebar"></div>
+        <script src="https://code.jquery.com/jquery-1.12.4.min.js" crossorigin="anonymous"></script>
+        <script>
+                var containsText = false;
+                var tickets = [];
+                $(document).ready(function () {
+                    $('#copy').css({'visibility': 'hidden'});
+                    showList('fetchTickets');
+                });
+                function resetAll(e) {
+                    $('#ticket_id').val('');
+                    $('#copy').css({'visibility': 'hidden'});
+                    var title = $('#title'), description = $('#desc'), code = $('#code');
+                    if ($('#save').text() === "Edit") {
+                        $('#save').text("Save");
+                        title.prop('contenteditable', true);
+                        description.prop('contenteditable', true);
+                        code.prop('contenteditable', true);
+                    }
+                    title.text('');
+                    description.text('');
+                    code.text('');
+                }
+                function copyCode(e) {
+                    $('#copy').css({'visibility': 'hidden'});
+                    $('#ticket_id').val('');
+                    var title = $('#title'), description = $('#desc'), code = $('#code');
+                    if ($('#save').text() === "Edit") {
+                        $('#save').text("Save");
+                        title.prop('contenteditable', true);
+                        description.prop('contenteditable', true);
+                        code.prop('contenteditable', true);
+                    }
+                }
+                function processTicket(e, m) {
+                    $('#copy').css({'visibility': 'visible'});
+                    var title = $('#title'), description = $('#desc'), code = $('#code');
+                    if ($(e.target).text() === "Edit") {
+                        $(e.target).text("Save");
+                        title.prop('contenteditable', true);
+                        description.prop('contenteditable', true);
+                        code.prop('contenteditable', true);
+                        return;
+                    }
+
+                    var ticket_id = encodeURI($('#ticket_id').val());
+
+                    var title = encodeURI(title.html());
+                    var desc = encodeURI(description.html());
+                    var code = encodeURI(code.html());
+
+                    $.ajax({
+                        url: 'tickets.do?m=' + m,
+                        type: 'POST',
+                        data: {
+                            title: title,
+                            desc: desc,
+                            code: code,
+                            ticket_id: ticket_id
+                        },
+                        success: function (response) {
+                            $('#ticket_id').val(response.data ? response.data.id : "");
+                            showList('fetchTickets');
+                        },
+                        error: function (xhr, msg) {
+                            alert('error happend :(');
+                        }
+                    });
+                }
+                function showList(m) {
+                    $.ajax({
+                        url: 'tickets.do?m=' + m,
+                        type: 'POST',
+                        success: function (response) {
+                            createTicketBoxes(response.data);
+                        },
+                        error: function (xhr, msg) {
+                            alert('error happend :(');
+                        }
+                    });
+                }
+                function createTicketBoxes(data) {
+                    var sidebar = document.querySelector('.sidebar');
+                    sidebar.innerHTML = '';
+                    data = data || [];
+                    tickets = data;
+
+                    for (var i = 0; i < data.length; i++) {
+                        var _title = document.createElement('div');
+                        sidebar.appendChild(_title);
+                        var _text = document.createElement('span');
+                        _title.appendChild(_text);
+                        var _remove = document.createElement('span');
+                        _remove.className = 'closeButton';
+                        _title.appendChild(_remove);
+                        _text.innerHTML = decodeURI(data[i].title);
+                        _title.id = "ticket_" + i;
+                        _title.className = "ticketBox";
+                        _text.onclick = function (e) {
+                            var i = Number(e.target.parentNode.id.substring(e.target.parentNode.id.lastIndexOf("_") + 1));
+                            $('#ticket_id').val(tickets[i].id);
+
+                            var save = $('#save'),
+                                    title = $('#title'),
+                                    description = $('#desc'),
+                                    code = $('#code');
+
+                            title.prop('contenteditable', false);
+                            title.html(decodeURI(tickets[i].title));
+                            description.prop('contenteditable', false);
+                            description.html(decodeURI(tickets[i].description));
+                            code.prop('contenteditable', false);
+                            code.html(decodeURI(tickets[i].data));
+
+                            save.html("Edit");
+
+                            $('#copy').css({'visibility': 'visible'});
+                        };
+                        _remove.onclick = function (e) {
+                            var i = Number(e.target.parentNode.id.substring(e.target.parentNode.id.lastIndexOf("_") + 1));
+                            var ticketID = tickets[i].id;
+                            var that = e.target;
+                            $.ajax({
+                                url: 'tickets.do?m=removeTicket&ticketID=' + ticketID,
+                                success: function (response) {
+                                    if (response.data === 'success') {
+                                        that.parentNode.parentNode.removeChild(that.parentNode);
+                                    }
+                                },
+                                error: function (xhr, msg) {
+                                    alert('error happend :(');
+                                }
+                            });
+                        };
+                    }
+                }
+        </script>
+    </body>
+</html>
