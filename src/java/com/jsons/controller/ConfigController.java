@@ -3,22 +3,19 @@ package com.jsons.controller;
 import com.jsons.data.Response;
 import com.jsons.wrappers.RequestWrapper;
 import com.google.gson.Gson;
-import com.google.gson.JsonElement;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonIOException;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.google.gson.reflect.TypeToken;
+import com.google.gson.stream.JsonWriter;
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.FileReader;
-import java.io.FileWriter;
+import java.io.File;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
-import java.io.Writer;
+import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -35,7 +32,7 @@ public class ConfigController extends HttpServlet {
 
     String uid = "";
     RequestWrapper request;
-    Gson json = new Gson();
+    Gson json = new GsonBuilder().setPrettyPrinting().create();
     JsonObject jsonObject;
     Response dataResponse;
 
@@ -50,9 +47,12 @@ public class ConfigController extends HttpServlet {
                         if (request.isJsonRequest()) {
                             dataResponse = new Response();
                             try {
-                                writeToUrl("http://localhost:8084" + request.getContextPath() + "/config/config.json", request.getJsonObject().toString());
+                                JsonWriter writer = json.newJsonWriter(getWriter("/config/config.json"));
+                                json.toJson(request.getJsonObject().getAsJsonArray("layout"), writer);
+                                writer.flush();
+                                writer.close();
                                 dataResponse.data = "success";
-                            } catch (Exception ex) {
+                            } catch (JsonIOException | IOException ex) {
                                 dataResponse.setError(-100, ex.getLocalizedMessage());
                             }
                             out.print(dataResponse);
@@ -65,7 +65,7 @@ public class ConfigController extends HttpServlet {
                     if (!(uid = request.getParameter(CONFIG_UID)).isEmpty()) {
                         dataResponse = new Response();
                         try {
-                            dataResponse.data = json.fromJson(readUrl("http://localhost:8084" + request.getContextPath() + "/config/config.json"), new TypeToken<List<Map>>(){}.getType());
+                            dataResponse.data = json.fromJson(readUrl(getHost(request) + request.getContextPath() + "/config/config.json"), new TypeToken<List<Map>>(){}.getType());
                         } catch (Exception ex) {
                             dataResponse.setError(-100, ex.getLocalizedMessage());
                         }
@@ -106,18 +106,13 @@ public class ConfigController extends HttpServlet {
         }
     }
 
-    private static boolean writeToUrl(String urlString, String data) throws Exception {
-        BufferedWriter w = null;
-        try {
-            URL url = new URL(urlString);
-            w = new BufferedWriter(new OutputStreamWriter(url.openConnection().getOutputStream()));
-            w.write(data, 0, data.length());
-            return true;
-        } finally {
-            if (w != null) {
-                w.close();
-            }
-        }
+    private PrintWriter getWriter(String urlString) throws MalformedURLException, IOException {
+            return new PrintWriter(new File(getServletContext().getRealPath(urlString)));
+    }
+    
+    private String getHost(HttpServletRequest request) {
+        String url = request.getRequestURL().toString();
+        return url.substring(0, url.indexOf(request.getContextPath()));
     }
 
     @Override
